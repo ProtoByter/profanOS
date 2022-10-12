@@ -85,8 +85,6 @@ int main(int arg) {
         float z2 = (cube.vertices[cube.indices[i+2]].y - Near) / (Far - Near);
 
         fillTriangle(depthBuffer ,v0, v1, v2, cube.couleurs[i], cube.couleurs[i+1], cube.couleurs[i+2], z0, z1, z2);
-
-        c_ms_sleep(250);
     }
 
     while (1);
@@ -112,7 +110,6 @@ void rotate(Cube_t item, Vertex3D_t axis, int angle) {
     };
 
     for (int i=0; i<8; i++) {
-        c_fskprint("BITE");
         Vertex3D_t p = item.vertices[i];
         float px = p.x - item.center.x;
         float py = p.y - item.center.y;
@@ -217,7 +214,7 @@ int depthBuffer_t_test(depthBuffer_t depthBuffer, int x, int y, uint16_t v) {
 }
 
 Vertex2D_t Vertex2D_t_project(Vertex3D_t vector) {
-    return (Vertex2D_t) {vector.x, vector.z};
+    return (Vertex2D_t) {vector.x, vector.y};
 }
 
 Cube_t Cube_t_init(Vertex3D_t position, float size) {
@@ -306,14 +303,14 @@ void fillTriangle(depthBuffer_t depthBuffer, Vertex2D_t v0, Vertex2D_t v1, Verte
 
             uint16_t depth = (w0 * z0 + w1 * z1 + w2 * z2) / area; 
 
-            if (depthBuffer_t_test(depthBuffer, x, y, depth)) {
-                fragment.r = (w0 * c0.r + w1 * c1.r + w2 * c2.r) / area;
-                fragment.g = (w0 * c0.g + w1 * c1.g + w2 * c2.g) / area;
-                fragment.b = (w0 * c0.b + w1 * c1.b + w2 * c2.b) / area;
-                c_vga_put_pixel(x, y, rgb_to_6bits(fragment.r, fragment.g, fragment.b));
-            }
+            if (depthBuffer_t_test(depthBuffer, x, y, depth))
+            fragment.r = (w0 * c0.r + w1 * c1.r + w2 * c2.r) / area;
+            fragment.g = (w0 * c0.g + w1 * c1.g + w2 * c2.g) / area;
+            fragment.b = (w0 * c0.b + w1 * c1.b + w2 * c2.b) / area;
+            c_vga_put_pixel(x, y, rgb_to_6bits(fragment.r, fragment.g, fragment.b));
         }
     }
+
 }
 
 int floor(float value) {
