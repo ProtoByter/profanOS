@@ -37,9 +37,10 @@ InstPile Instpile_init(int size);
 
 int main(int argc, char **argv) {
     // char code[] = "1,2,3,4>>>>+,+>>+>print";
-    // ask for code
     char *code = c_calloc(100);
+    c_fskprint("Enter code >>> ");
     c_input(code, 100, c_blue);
+    c_fskprint("\n");
     int code_size = c_str_len(code);
     InstPile liste_instructions = Instpile_init(code_size);
     compileall(code, &liste_instructions);
