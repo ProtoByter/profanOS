@@ -92,7 +92,8 @@ Element pile_pop(Pile *pile) {
     return pile->elements[pile->top--];
 }
 
-void add2int(Pile *pile, Pile *liste_args) {
+void add2(Pile *pile, Pile *liste_args) {
+    c_fskprint("add2\n");
     Element arg1 = pile_pop(liste_args);
     Element arg2 = pile_pop(liste_args);
     if (arg1.data_type == 0 && arg2.data_type == 0) {
@@ -105,6 +106,7 @@ void add2int(Pile *pile, Pile *liste_args) {
 }
 
 void afficher(Pile *pile, Pile *liste_args) {
+    c_fskprint("afficher\n");
     Element arg1 = pile_pop(liste_args);
     if (arg1.data_type == 0) {
         c_fskprint("%d", arg1.data_int);
@@ -114,13 +116,14 @@ void afficher(Pile *pile, Pile *liste_args) {
 
 #define NB_BUILDINS 2
 #define NB_ALIAS_MAX 3
+#define NB_MAX_SIZE 10
 
-char *buildins_names[NB_BUILDINS][NB_ALIAS_MAX] = {
+char buildins_names[NB_BUILDINS][NB_ALIAS_MAX][NB_MAX_SIZE] = {
     {"add", "+", ""},
     {"print", "afficher", ""}
 };
 Function buildins_functions[NB_BUILDINS] = {
-    (Function){2, 1, (int)add2int},
+    (Function){2, 1, (int)add2},
     (Function){1, 0, (int)afficher}
 };
 
@@ -238,20 +241,17 @@ void compileall(char* code, InstPile *liste_instructions) {
 void run(InstPile *liste_instructions) {
     Pile pile = pile_init(100);
     Pile work_pile = pile_init(100);
-    c_fskprint("top : %d", liste_instructions->top);
     for (int i = 0; i < liste_instructions->top+1; i++) {
-        if (liste_instructions->inst[i].element.data_type == 0) {
-            c_fskprint("inst[%d] = Instruction(%s, Element(%d))\n", i, liste_instructions->inst[i].name, liste_instructions->inst[i].element.data_int);
-        } else {
-            c_fskprint("inst[%d] = Instruction(%s, Element(\"%s\"))\n", i, liste_instructions->inst[i].name, liste_instructions->inst[i].element.data_string);
-        }
-        continue;
+        // if (liste_instructions->inst[i].element.data_type == 0) {
+        //     c_fskprint("inst[%d] = Instruction(%s, Element(%d))\n", i, liste_instructions->inst[i].name, liste_instructions->inst[i].element.data_int);
+        // } else {
+        //     c_fskprint("inst[%d] = Instruction(%s, Element(\"%s\"))\n", i, liste_instructions->inst[i].name, liste_instructions->inst[i].element.data_string);
+        // }
+        
         Instruction inst = liste_instructions->inst[i];
         if (!c_str_cmp(inst.name, "addnb")) {
-            // c_fskprint("addnb\n");
             pile_push(&pile, inst.element);
         } else if (!c_str_cmp(inst.name, "fleche")) {
-            // c_fskprint("fleche\n");
             for (int j=0; j<work_pile.top+1; j++) {
                 pile_push(&pile, work_pile.elements[j]);
             }
@@ -259,16 +259,16 @@ void run(InstPile *liste_instructions) {
                 pile_push(&work_pile, pile_pop(&pile));
             }
         } else if (!c_str_cmp(inst.name, "cmd")) {
-            // c_fskprint("cmd\n");
             for (int liste_id = 0; liste_id < NB_BUILDINS; liste_id++) {
                 for (int alias_id = 0; alias_id < NB_ALIAS_MAX; alias_id++) {
                     if (!c_str_cmp(buildins_names[liste_id][alias_id], inst.element.data_string)) {
                         Function func = buildins_functions[liste_id];
-                        // c_fskprint("func = %s\n", buildins_names[liste_id][alias_id]);
+                        c_fskprint("func = %s\n", buildins_names[liste_id][alias_id]);
                         ((void (*)(Pile*, Pile*)) func.function)(&pile, &work_pile);
                     }
                 }
             }
+            c_ms_sleep(250);
         }
         c_free(inst.element.data_string);
     }
