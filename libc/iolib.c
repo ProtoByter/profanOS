@@ -22,6 +22,7 @@
 #define BACKSPACE 14
 #define DEL 83
 #define ENTER 28
+#define ARROW 86
 
 // private functions
 
@@ -261,6 +262,15 @@ void input_wh(char out_buffer[], int size, screen_color_t color, char ** history
             buffer_index++;
         }
 
+        else if (sc == ARROW) {
+            if (size < buffer_actual_size + 2) continue;
+            for (int i = buffer_actual_size; i > buffer_index; i--) {
+                out_buffer[i] = out_buffer[i - 1];
+            }
+            out_buffer[buffer_index] = shift ? '>' : '<';
+            buffer_actual_size++;
+            buffer_index++;
+        }
 
         set_cursor_offset(old_cursor);
         ckprint(out_buffer, color);

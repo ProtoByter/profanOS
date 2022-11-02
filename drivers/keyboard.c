@@ -29,7 +29,7 @@ char kb_scancode_to_char(int scancode, int shift) {
         '<', '#', '?', '>', 'W', 'X', 'C', 'V', 'B', 'N',
         '?', '.', '/', '+', '?', '?', '?', ' '
     };
-
+    
     return (shift) ? sc_ascii_maj[scancode] : sc_ascii_min[scancode];
 }
 

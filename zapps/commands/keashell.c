@@ -37,6 +37,9 @@ InstPile Instpile_init(int size);
 
 int main(int argc, char **argv) {
     char code[] = "1,2,3,4>>>>+,+>>+>print";
+    // ask for code
+    // char *code = c_calloc(100);
+    // c_input_wh(code, 100, c_blue, NULL, 0);
     int code_size = c_str_len(code);
     InstPile liste_instructions = Instpile_init(code_size);
     compileall(code, &liste_instructions);
@@ -93,7 +96,6 @@ Element pile_pop(Pile *pile) {
 }
 
 void add2(Pile *pile, Pile *liste_args) {
-    c_fskprint("add2\n");
     Element arg1 = pile_pop(liste_args);
     Element arg2 = pile_pop(liste_args);
     if (arg1.data_type == 0 && arg2.data_type == 0) {
@@ -106,7 +108,6 @@ void add2(Pile *pile, Pile *liste_args) {
 }
 
 void afficher(Pile *pile, Pile *liste_args) {
-    c_fskprint("afficher\n");
     Element arg1 = pile_pop(liste_args);
     if (arg1.data_type == 0) {
         c_fskprint("%d", arg1.data_int);
@@ -191,6 +192,7 @@ void add_buffer(char* buffer1, InstPile *liste_instructions) {
     char* buffer3 = c_malloc(sizeof(char) * 100);
     c_str_cpy(buffer3, buffer2);
     add_instruction(buffer3, liste_instructions);
+    c_free(buffer2);
 }
 
 void compileall(char* code, InstPile *liste_instructions) {
@@ -238,6 +240,7 @@ void compileall(char* code, InstPile *liste_instructions) {
     }
     c_str_cpy(buffer2, buffer);
     add_buffer(buffer2, liste_instructions);
+    c_free(buffer);
 }
 
 void run(InstPile *liste_instructions) {
@@ -276,12 +279,10 @@ void run(InstPile *liste_instructions) {
                 for (int alias_id = 0; alias_id < NB_ALIAS_MAX; alias_id++) {
                     if (!c_str_cmp(buildins_names[liste_id][alias_id], inst.element.data_string)) {
                         Function func = buildins_functions[liste_id];
-                        c_fskprint("func = %s\n", buildins_names[liste_id][alias_id]);
                         ((void (*)(Pile*, Pile*)) func.function)(&pile, &work_pile);
                     }
                 }
             }
-            c_ms_sleep(250);
         }
         c_free(inst.element.data_string);
     }
