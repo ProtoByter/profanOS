@@ -26,7 +26,7 @@ typedef struct Pile {
 typedef struct Function {
     int nb_args;
     int nb_return;
-    int function;
+    void * function;
 } Function;
 
 void add_instruction(char* inst, InstPile *liste_instructions);
@@ -36,7 +36,7 @@ void run(InstPile *liste_instructions);
 InstPile Instpile_init(int size);
 
 int main(int argc, char **argv) {
-    char *code = "1,2,3,4>>>>+,+>>+>print";
+    char code[] = "1,2,3,4>>>>+,+>>+>print";
     int code_size = c_str_len(code);
     InstPile liste_instructions = Instpile_init(code_size);
     compileall(code, &liste_instructions);
@@ -122,10 +122,12 @@ char buildins_names[NB_BUILDINS][NB_ALIAS_MAX][NB_MAX_SIZE] = {
     {"add", "+", ""},
     {"print", "afficher", ""}
 };
-Function buildins_functions[NB_BUILDINS] = {
-    (Function){2, 1, (int)add2},
-    (Function){1, 0, (int)afficher}
-};
+
+void copy_fonction_struc(Function *dest, Function *src) {
+    dest->nb_args = src->nb_args;
+    dest->nb_return = src->nb_return;
+    dest->function = src->function;
+}
 
 void add_instruction(char* inst, InstPile *liste_instructions) {
     int is_num = 1;
@@ -202,7 +204,7 @@ void compileall(char* code, InstPile *liste_instructions) {
         if (code[index] == '>') {
             if (c_str_len(buffer) > 0) {
                 char* buffer2 = c_malloc(sizeof(char) * 100);
-                for (int i=0; i<100; i++) {
+                for (int i = 0; i < 100; i++) {
                     buffer2[i] = '\0';
                 }
                 c_str_cpy(buffer2, buffer);
@@ -231,7 +233,7 @@ void compileall(char* code, InstPile *liste_instructions) {
         index++;
     }
     char* buffer2 = c_malloc(sizeof(char) * 100);
-    for (int i=0; i<100; i++) {
+    for (int i = 0; i < 100; i++) {
         buffer2[i] = '\0';
     }
     c_str_cpy(buffer2, buffer);
@@ -239,8 +241,14 @@ void compileall(char* code, InstPile *liste_instructions) {
 }
 
 void run(InstPile *liste_instructions) {
+    Function buildins_functions[NB_BUILDINS] = {
+        (Function){2, 1, add2},
+        (Function){1, 0, afficher}
+    };
+
     Pile pile = pile_init(100);
     Pile work_pile = pile_init(100);
+
     for (int i = 0; i < liste_instructions->top+1; i++) {
         // if (liste_instructions->inst[i].element.data_type == 0) {
         //     c_fskprint("inst[%d] = Instruction(%s, Element(%d))\n", i, liste_instructions->inst[i].name, liste_instructions->inst[i].element.data_int);
@@ -249,16 +257,21 @@ void run(InstPile *liste_instructions) {
         // }
         
         Instruction inst = liste_instructions->inst[i];
+
         if (!c_str_cmp(inst.name, "addnb")) {
             pile_push(&pile, inst.element);
-        } else if (!c_str_cmp(inst.name, "fleche")) {
+        }
+
+        else if (!c_str_cmp(inst.name, "fleche")) {
             for (int j=0; j<work_pile.top+1; j++) {
                 pile_push(&pile, work_pile.elements[j]);
             }
             for (int j=0; j<inst.element.data_int; j++) {
                 pile_push(&work_pile, pile_pop(&pile));
             }
-        } else if (!c_str_cmp(inst.name, "cmd")) {
+        }
+        
+        else if (!c_str_cmp(inst.name, "cmd")) {
             for (int liste_id = 0; liste_id < NB_BUILDINS; liste_id++) {
                 for (int alias_id = 0; alias_id < NB_ALIAS_MAX; alias_id++) {
                     if (!c_str_cmp(buildins_names[liste_id][alias_id], inst.element.data_string)) {
