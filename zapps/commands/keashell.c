@@ -36,10 +36,10 @@ void run(InstPile *liste_instructions);
 InstPile Instpile_init(int size);
 
 int main(int argc, char **argv) {
-    char code[] = "1,2,3,4>>>>+,+>>+>print";
+    // char code[] = "1,2,3,4>>>>+,+>>+>print";
     // ask for code
-    // char *code = c_calloc(100);
-    // c_input_wh(code, 100, c_blue, NULL, 0);
+    char *code = c_calloc(100);
+    c_input(code, 100, c_blue);
     int code_size = c_str_len(code);
     InstPile liste_instructions = Instpile_init(code_size);
     compileall(code, &liste_instructions);
