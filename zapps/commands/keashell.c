@@ -37,7 +37,7 @@ InstPile Instpile_init(int size);
 
 int main(int argc, char **argv) {
     // char code[] = "1,2,3,4>>>>+,+>>+>print";
-    char *code = c_calloc(100);
+    char code[100];
     c_fskprint("Enter code >>> ");
     c_input(code, 100, c_blue);
     c_fskprint("\n");
@@ -45,10 +45,12 @@ int main(int argc, char **argv) {
     InstPile liste_instructions = Instpile_init(code_size);
     compileall(code, &liste_instructions);
     run(&liste_instructions);
-    for (int i = 0; i < liste_instructions.top+1; i++) {
+    for (int i = 0; i < liste_instructions.top + 1; i++) {
         c_free(liste_instructions.inst[i].element.data_string);
     }
     c_free(liste_instructions.inst);
+    c_mem_print();
+    while (1);
     return 0;
 }
 
@@ -132,18 +134,16 @@ void copy_fonction_struc(Function *dest, Function *src) {
 }
 
 void add_instruction(char* inst, InstPile *liste_instructions) {
-    int is_num = 1;
-    char* liste_num = "0123456789";
+    int is_num;
+    char liste_num[] = "0123456789";
     for (int i = 0; i < c_str_len(inst); i++) {
-        int temp = 0;
-        for (int j=0; j < c_str_len(liste_num); j++) {
+        is_num = 0;
+        for (int j = 0; j < c_str_len(liste_num); j++) {
             if (inst[i] == liste_num[j]) {
-                temp = 1;
+                is_num = 1;
+                break;
             }
-        }
-        if (temp == 0) {
-            is_num = 0;
-        }
+        } if (!is_num) break;
     }
     if (is_num == 1) {
         int nb = 0;
@@ -153,36 +153,31 @@ void add_instruction(char* inst, InstPile *liste_instructions) {
             .element = (Element) {
                 .data_type = 0,
                 .data_int = nb,
-                .data_string = c_malloc(1)
+                .data_string = c_malloc(0x1000)
             }
         });
     } else {
-        Instpile_push(liste_instructions, (Instruction) {
+        Instruction inst_temp = (Instruction) {
             .name = "cmd",
             .element = (Element) {
                 .data_type = 1,
                 .data_int = 0,
-                .data_string = inst
+                .data_string = c_malloc(c_str_len(inst))
             }
-        });
+        };
+        c_str_cpy(inst_temp.element.data_string, inst);
+        Instpile_push(liste_instructions, inst_temp);
     }
 }
 
-void add_buffer(char* buffer1, InstPile *liste_instructions) {
+void add_buffer(char *buffer1, InstPile *liste_instructions) {
     int index = 0;
-    char* buffer2 = c_malloc(sizeof(char) * 100);
-    for (int i=0; i<100; i++) {
-        buffer2[i] = '\0';
-    }
+    char *buffer2 = c_calloc(sizeof(char) * 100);
     while (index < c_str_len(buffer1)) {
         if (buffer1[index] == ',') {
             if (c_str_len(buffer2) != 0) {
-                char* buffer3 = c_malloc(sizeof(char) * 100);
-                c_str_cpy(buffer3, buffer2);
-                add_instruction(buffer3, liste_instructions);
-                for (int i = 0; i < c_str_len(buffer2); i++) {
-                    buffer2[i] = '\0';
-                }
+                add_instruction(buffer2, liste_instructions);
+                buffer2[0] = '\0';
             } 
         } else {
             buffer2[c_str_len(buffer2)] = buffer1[index];
@@ -190,28 +185,19 @@ void add_buffer(char* buffer1, InstPile *liste_instructions) {
         }
         index++;
     }
-    char* buffer3 = c_malloc(sizeof(char) * 100);
-    c_str_cpy(buffer3, buffer2);
-    add_instruction(buffer3, liste_instructions);
+    add_instruction(buffer2, liste_instructions);
     c_free(buffer2);
 }
 
 void compileall(char* code, InstPile *liste_instructions) {
-    int index = 0;
-    char *buffer = c_malloc(sizeof(char) * 100);
-    for (int i=0; i<100; i++) {
-        buffer[i] = '\0';
-    }
     int nb_fleches = 0;
+    int index = 0;
+    char *buffer = c_calloc(sizeof(char) * 100);
+    char *buffer2 = c_calloc(sizeof(char) * 100);
     while (index < c_str_len(code)) {
         if (code[index] == '>') {
             if (c_str_len(buffer) > 0) {
-                char* buffer2 = c_malloc(sizeof(char) * 100);
-                for (int i = 0; i < 100; i++) {
-                    buffer2[i] = '\0';
-                }
-                c_str_cpy(buffer2, buffer);
-                add_buffer(buffer2, liste_instructions);
+                add_buffer(buffer, liste_instructions);
                 for (int i = 0; i < 100; i++) {
                     buffer[i] = '\0';
                 }
@@ -232,15 +218,12 @@ void compileall(char* code, InstPile *liste_instructions) {
             nb_fleches = 0;
         }
         buffer[c_str_len(buffer)] = code[index];
-        buffer[c_str_len(buffer) + 1] = '\0';
+        buffer[c_str_len(buffer)] = '\0';
         index++;
-    }
-    char* buffer2 = c_malloc(sizeof(char) * 100);
-    for (int i = 0; i < 100; i++) {
-        buffer2[i] = '\0';
     }
     c_str_cpy(buffer2, buffer);
     add_buffer(buffer2, liste_instructions);
+    c_free(buffer2);
     c_free(buffer);
 }
 
@@ -253,7 +236,7 @@ void run(InstPile *liste_instructions) {
     Pile pile = pile_init(100);
     Pile work_pile = pile_init(100);
 
-    for (int i = 0; i < liste_instructions->top+1; i++) {
+    for (int i = 0; i < liste_instructions->top + 1; i++) {
         // if (liste_instructions->inst[i].element.data_type == 0) {
         //     c_fskprint("inst[%d] = Instruction(%s, Element(%d))\n", i, liste_instructions->inst[i].name, liste_instructions->inst[i].element.data_int);
         // } else {
@@ -267,7 +250,7 @@ void run(InstPile *liste_instructions) {
         }
 
         else if (!c_str_cmp(inst.name, "fleche")) {
-            for (int j=0; j<work_pile.top+1; j++) {
+            for (int j=0; j<work_pile.top + 1; j++) {
                 pile_push(&pile, work_pile.elements[j]);
             }
             for (int j=0; j<inst.element.data_int; j++) {
