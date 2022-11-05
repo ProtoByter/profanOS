@@ -49,8 +49,6 @@ int main(int argc, char **argv) {
         c_free(liste_instructions.inst[i].element.data_string);
     }
     c_free(liste_instructions.inst);
-    c_mem_print();
-    while (1);
     return 0;
 }
 

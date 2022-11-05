@@ -17,6 +17,14 @@ HDD_MAP = {
     "sys": "sys_dir/sys/*",
     "user": "sys_dir/user/*",
     "zada": "sys_dir/zada/*",
+    "sys/zapps" : "zapps/*" # the only one needed for now, to autoparse syscalls
+    # "sys/boot" : "boot/*",
+    # "sys/cpu" : "cpu/*",
+    # "sys/drivers" : "drivers/*",
+    # "sys/include" : "include/*",
+    # "sys/kernel" : "kernel/*",
+    # "sys/libc" : "libc/*",
+    # "sys/sys_dir" : "sys_dir/*",
 }
 
 CC = "gcc"
