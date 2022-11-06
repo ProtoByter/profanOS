@@ -96,7 +96,8 @@ Element pile_pop(Pile *pile) {
     return pile->elements[pile->top--];
 }
 
-void add2(Pile *pile, Pile *liste_args) {
+/*buildins functions*/
+int add2(Pile *pile, Pile *liste_args) {
     Element arg1 = pile_pop(liste_args);
     Element arg2 = pile_pop(liste_args);
     if (arg1.data_type == 0 && arg2.data_type == 0) {
@@ -104,16 +105,38 @@ void add2(Pile *pile, Pile *liste_args) {
         res.data_type = 0;
         res.data_int = arg1.data_int + arg2.data_int;
         pile_push(pile, res);
-        return;
+        return 0;
+    } else if (arg1.data_type == 1 && arg2.data_type == 1) {
+        Element res;
+        res.data_type = 1;
+        res.data_string = c_calloc(c_str_len(arg1.data_string)+c_str_len(arg2.data_string)+1);
+        res.data_string[0] = '\0';
+        for (int i=1; i<c_str_len(arg1.data_string)-1; i++) {
+            c_str_append(res.data_string, arg1.data_string[i]);
+        }
+        for (int i=1; i<c_str_len(arg2.data_string)-1; i++) {
+            c_str_append(res.data_string, arg2.data_string[i]);
+        }
+        
+        pile_push(pile, res);
+        return 0;
+    } else {
+        c_fskprint("Error wrong types, expected int+int or str+str, got %s, %s\n", arg1.data_type?"str":"int", arg2.data_type?"str":"int");
+        return 1;
     }
+    return 0;
 }
 
-void afficher(Pile *pile, Pile *liste_args) {
+int afficher(Pile *pile, Pile *liste_args) {
     Element arg1 = pile_pop(liste_args);
     if (arg1.data_type == 0) {
         c_fskprint("%d", arg1.data_int);
-        return;
+        return 0;
+    } else if(arg1.data_type == 1) {
+        c_fskprint("%s", arg1.data_string);
+        return 0;
     }
+    return 0;
 }
 
 #define NB_BUILDINS 2
@@ -124,6 +147,7 @@ char buildins_names[NB_BUILDINS][NB_ALIAS_MAX][NB_MAX_SIZE] = {
     {"add", "+", ""},
     {"print", "afficher", ""}
 };
+/*end of buildins functions*/
 
 void copy_fonction_struc(Function *dest, Function *src) {
     dest->nb_args = src->nb_args;
@@ -147,13 +171,25 @@ void add_instruction(char* inst, InstPile *liste_instructions) {
         int nb = 0;
         nb = c_ascii_to_int(inst);
         Instpile_push(liste_instructions, (Instruction) {
-            .name = "addnb",
+            .name = "appendData",
             .element = (Element) {
                 .data_type = 0,
                 .data_int = nb,
                 .data_string = c_malloc(0x1000)
             }
         });
+    } else if (inst[0] == '"' && inst[c_str_len(inst)-1] == '"') {
+        // if inst is a string
+        Instruction inst_temp = (Instruction) {
+            .name = "appendData",
+            .element = (Element) {
+                .data_type = 1,
+                .data_int = 0,
+                .data_string = c_malloc(c_str_len(inst))
+            }
+        };
+        c_str_cpy(inst_temp.element.data_string, inst);
+        Instpile_push(liste_instructions, inst_temp);
     } else {
         Instruction inst_temp = (Instruction) {
             .name = "cmd",
@@ -243,7 +279,7 @@ void run(InstPile *liste_instructions) {
         
         Instruction inst = liste_instructions->inst[i];
 
-        if (!c_str_cmp(inst.name, "addnb")) {
+        if (!c_str_cmp(inst.name, "appendData")) {
             pile_push(&pile, inst.element);
         }
 
@@ -257,13 +293,21 @@ void run(InstPile *liste_instructions) {
         }
         
         else if (!c_str_cmp(inst.name, "cmd")) {
+            int has_run = 0;
             for (int liste_id = 0; liste_id < NB_BUILDINS; liste_id++) {
                 for (int alias_id = 0; alias_id < NB_ALIAS_MAX; alias_id++) {
                     if (!c_str_cmp(buildins_names[liste_id][alias_id], inst.element.data_string)) {
+                        has_run = 1;
                         Function func = buildins_functions[liste_id];
-                        ((void (*)(Pile*, Pile*)) func.function)(&pile, &work_pile);
+                        int error = ((int (*)(Pile*, Pile*)) func.function)(&pile, &work_pile);
+                        if (error) {
+                            c_fskprint("$4Une erreur est survenue, arret de la shell");
+                        }
                     }
                 }
+            }
+            if (!has_run) {
+                // TODO : SYSCALLS
             }
         }
         c_free(inst.element.data_string);
