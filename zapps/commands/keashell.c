@@ -3,7 +3,7 @@
 typedef struct Element {
     int data_type;
     int data_int;
-    char* data_string;
+    char *data_string;
 } Element;
 
 typedef struct Instruction {
@@ -26,12 +26,12 @@ typedef struct Pile {
 typedef struct Function {
     int nb_args;
     int nb_return;
-    void * function;
+    void *function;
 } Function;
 
-void add_instruction(char* inst, InstPile *liste_instructions);
-void add_buffer(char* buffer1, InstPile *liste_instructions);
-void compileall(char* code, InstPile *liste_instructions);
+void add_instruction(char *inst, InstPile *liste_instructions);
+void add_buffer(char *buffer1, InstPile *liste_instructions);
+void compileall(char *code, InstPile *liste_instructions);
 void run(InstPile *liste_instructions);
 InstPile Instpile_init(int size);
 
@@ -206,6 +206,7 @@ void add_instruction(char* inst, InstPile *liste_instructions) {
 
 void add_buffer(char *buffer1, InstPile *liste_instructions) {
     int index = 0;
+    int length;
     char *buffer2 = c_calloc(sizeof(char) * 100);
     while (index < c_str_len(buffer1)) {
         if (buffer1[index] == ',') {
@@ -214,8 +215,9 @@ void add_buffer(char *buffer1, InstPile *liste_instructions) {
                 buffer2[0] = '\0';
             } 
         } else {
-            buffer2[c_str_len(buffer2)] = buffer1[index];
-            buffer2[c_str_len(buffer2)] = '\0';
+            length = c_str_len(buffer2);
+            buffer2[length] = buffer1[index];
+            buffer2[length+1] = '\0';
         }
         index++;
     }
@@ -276,7 +278,6 @@ void run(InstPile *liste_instructions) {
         // } else {
         //     c_fskprint("inst[%d] = Instruction(%s, Element(\"%s\"))\n", i, liste_instructions->inst[i].name, liste_instructions->inst[i].element.data_string);
         // }
-        
         Instruction inst = liste_instructions->inst[i];
 
         if (!c_str_cmp(inst.name, "appendData")) {
@@ -301,7 +302,8 @@ void run(InstPile *liste_instructions) {
                         Function func = buildins_functions[liste_id];
                         int error = ((int (*)(Pile*, Pile*)) func.function)(&pile, &work_pile);
                         if (error) {
-                            c_fskprint("$4Une erreur est survenue, arret de la shell");
+                            c_fskprint("$4Une erreur est survenue, arret de la shell\n");
+                            return;
                         }
                     }
                 }
