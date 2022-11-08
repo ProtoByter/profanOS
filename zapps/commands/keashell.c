@@ -309,7 +309,46 @@ void run(InstPile *liste_instructions) {
                 }
             }
             if (!has_run) {
-                // TODO : SYSCALLS
+                // read sys/zapps/syscall.h
+                char file[] = "/sys/zapps/syscall.h";
+                uint32_t *file_content = c_fs_declare_read_array(file);
+                char *char_content = c_fs_declare_read_array(file);
+                c_fs_read_file(file, file_content);
+                int char_count;
+                for (char_count = 0; file_content[char_count] != (uint32_t) -1; char_count++)
+                    char_content[char_count] = (char) file_content[char_count];
+                char_content[char_count] = '\0';
+                c_ckprint(char_content, c_magenta);
+                c_fskprint("\n");
+                c_free(file_content);
+                // run over every line
+                char **lines = c_calloc(c_str_count(char_content, '\n')+1);
+                for (int i = 0; i < c_str_count(char_content, '\n')+1; i++) {
+                    lines[i] = c_calloc(100);
+                }
+                for (int i = 0; i < c_str_count(char_content, '\n')+1; i++) {
+                    //without c_str_getline
+                    int j = 0;
+                    while (char_content[j] != '\n' && char_content[j] != '\0') {
+                        lines[i][j] = char_content[j];
+                        j++;
+                    }
+                    lines[i][j] = '\0';
+                    char_content += j+1;
+                }
+                // print every line
+                for (int i = 0; i < c_str_count(char_content, '\n')+1; i++) {
+                    c_ckprint(lines[i], c_magenta);
+                    c_fskprint("\n");
+                }
+
+
+                // free
+                for (int i = 0; i < c_str_count(char_content, '\n')+1; i++) {
+                    c_free(lines[i]);
+                }
+                c_free(lines);  
+                c_free(char_content);
             }
         }
         c_free(inst.element.data_string);
