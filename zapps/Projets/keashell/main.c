@@ -13,6 +13,8 @@ int main(int argc, char **argv) {
     if (error_code != NO_ERROR) {
         c_fskprint("Erreur %d\n", error_code);
     }
+    
+    c_mem_print();
 
     while (1);
     return 0;

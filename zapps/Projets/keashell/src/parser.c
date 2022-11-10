@@ -83,7 +83,13 @@ ParsedProgram_t run_parser(LexedProgram_t program) {
                 current_instruction = instruction;
             }
         }
+
+        // free the word
+        c_free(program.words[i].word);
     }
+
+    // free the words array
+    c_free(program.words);
 
     // create the parsed program
     ParsedProgram_t parsed_program;
