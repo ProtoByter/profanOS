@@ -9,6 +9,7 @@ typedef enum ErrorCodes_t {
     ERROR_STACK_UNDERFLOW = 2,
     ERROR_STACK_OVERFLOW = 3,
     ERROR_INVALID_TYPE_PRINT = 4,
+    ERROR_NOT_RECHEABLE = 5,
 } ErrorCodes_t;
 
 typedef struct InterpretorElement_t {

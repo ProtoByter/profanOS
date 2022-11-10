@@ -23,6 +23,7 @@ LexedProgram_t run_lexer(char *code) {
 
     // fill the words
     for (int i = 0; i < c_str_len(code); i++) {
+        // TODO : handle the case where the word is a string with spaces
         if (code[i] == ' ') {
             word[word_index] = '\0';
             program.words[program_index].word = word;

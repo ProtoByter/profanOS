@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
     // -Execution normale : DONE
     // -Execution avec erreur : DONE
 
-    char code[] = "3 4 3 3 3 3 + . \"test\" \"test\" 3 + . 3 3 3 3";
+    char code[] = "3 4 + . \"test\" \"coucou\" + .";
     c_fskprint("Lancement du code : %s\n", code);
 
     LexedProgram_t program = run_lexer(code);

@@ -18,6 +18,7 @@ int run_interpretor(ParsedProgram_t program) {
     while (program.instructions != NULL) {
         // shouldn't happend, but in case i forgor to add a break after an error
         if (error_code != NO_ERROR) {
+            error_code = ERROR_NOT_RECHEABLE;
             break;
         }
 
