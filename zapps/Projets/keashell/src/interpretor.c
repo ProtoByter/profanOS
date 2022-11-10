@@ -16,6 +16,11 @@ int run_interpretor(ParsedProgram_t program) {
     int error_code = NO_ERROR;
 
     while (program.instructions != NULL) {
+        // shouldn't happend, but in case i forgor to add a break after an error
+        if (error_code != NO_ERROR) {
+            break;
+        }
+
         if (program.instructions->type == I_PUSH) {
             // if the stack is full
             if (stack.top_index == stack.size - 1) {
