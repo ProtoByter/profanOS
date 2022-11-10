@@ -21,11 +21,18 @@ int run_interpretor(ParsedProgram_t program) {
             // add the element to the stack
             stack.top_index++;
             // new element beacause we change types
-            InterpretorElement_t *element = (InterpretorElement_t *) c_malloc(sizeof(InterpretorElement_t));
-            element->data_type = program.instructions->element->data_type;
-            element->data_int = program.instructions->element->data_int;
-            element->data_str = program.instructions->element->data_str;
-            stack.element_list[stack.top_index] = *element;
+            InterpretorElement_t element;
+            element.data_type = program.instructions->element->data_type;
+            element.data_int = program.instructions->element->data_int;
+            if (program.instructions->element->data_type == E_STRING) {
+                element.data_str = (char *) c_malloc(sizeof(char)*c_str_len(program.instructions->element->data_str));
+                c_str_cpy(element.data_str, program.instructions->element->data_str);
+            } else {
+                element.data_str = NULL;
+            }
+            stack.element_list[stack.top_index] = element;
+            // free the memory allocated by the parser
+            c_free(program.instructions->element);
         }
         else if (program.instructions->type == I_ADD) {
             if (stack.top_index < 1) {
@@ -37,7 +44,6 @@ int run_interpretor(ParsedProgram_t program) {
                 InterpretorElement_t element;
                 element.data_type = E_NUMBER;
                 element.data_int = stack.element_list[stack.top_index].data_int + stack.element_list[stack.top_index - 1].data_int;
-                // remove the two elements from the stack
                 stack.top_index -= 2;
                 // add the new element to the stack
                 stack.top_index++;
@@ -50,12 +56,15 @@ int run_interpretor(ParsedProgram_t program) {
                 element.data_type = E_STRING;
 
                 int size = c_str_len(stack.element_list[stack.top_index].data_str) + c_str_len(stack.element_list[stack.top_index - 1].data_str) + 1;
-                element.data_str = (char *) c_malloc(sizeof(char)*size);
+                element.data_str = (char *) c_calloc(sizeof(char)*size);
                 c_str_cpy(element.data_str, stack.element_list[stack.top_index - 1].data_str);
                 c_str_cat(element.data_str, stack.element_list[stack.top_index].data_str);
                 element.data_str[size - 1] = '\0';
-                // remove the two elements from the stack
-                stack.top_index -= 2;
+                // remove the two elements from the stack (we need to free them beacause they are strings)
+                for (int i = 0; i < 2; i++) {
+                    c_free(stack.element_list[stack.top_index].data_str);
+                    stack.top_index--;
+                }
                 // add the new element to the stack
                 stack.top_index++;
                 stack.element_list[stack.top_index] = element;
@@ -65,16 +74,19 @@ int run_interpretor(ParsedProgram_t program) {
             }
         }
         else if (program.instructions->type == I_PRINT) {
-            if (stack.top_index == -1) {
+            if (stack.top_index < 0) {
                 return ERROR_STACK_UNDERFLOW;
             }
             // if the element is a number
             if (stack.element_list[stack.top_index].data_type == E_NUMBER) {
                 c_fskprint("%d", stack.element_list[stack.top_index].data_int);
+                stack.top_index--;
             }
             // if the element is a string
             else if (stack.element_list[stack.top_index].data_type == E_STRING) {
                 c_fskprint("%s", stack.element_list[stack.top_index].data_str);
+                c_free(stack.element_list[stack.top_index].data_str);
+                stack.top_index--;
             }
             else {
                 return ERROR_INVALID_TYPE_PRINT;
@@ -82,9 +94,19 @@ int run_interpretor(ParsedProgram_t program) {
         }
 
         // go to the next instruction
+        int to_free = (int) program.instructions;
         program.instructions = program.instructions->next;
+        c_free((void *) to_free);
     }
 
+    while (stack.top_index >= 0) {
+        if (stack.element_list[stack.top_index].data_type == E_STRING) {
+            c_free(stack.element_list[stack.top_index].data_str);
+        }
+        stack.top_index--;
+    }
+    c_free(stack.element_list);
+    c_free(program.instructions);
 
     return NO_ERROR;
 }

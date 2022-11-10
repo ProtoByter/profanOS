@@ -47,14 +47,13 @@ LexedProgram_t run_lexer(char *code) {
         else if (program.words[i].word[0] == '"' && program.words[i].word[c_str_len(program.words[i].word) - 1] == '"') {
             program.words[i].type = W_STRING;
             // remove the " at the beginning and the end of the string
-            // TODO : CHECK FOR MEMORY LEAK (make a c_str_sub ?)
             char *new_word = (char *) c_malloc(sizeof(char) * 100);
             for (int j = 1; j < c_str_len(program.words[i].word) - 1; j++) {
                 new_word[j - 1] = program.words[i].word[j];
             }
             new_word[c_str_len(program.words[i].word) - 2] = '\0';
-            program.words[i].word = new_word;
-
+            c_str_cpy(program.words[i].word, new_word);
+            c_free(new_word);            
         }
         // if the word is a command
         else {

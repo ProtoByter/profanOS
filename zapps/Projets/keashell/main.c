@@ -4,6 +4,7 @@
 #include "src/interpretor.h"
 
 int main(int argc, char **argv) {
+    // current memory leak : 2 blocks - 6 (29)
     char code[] = "3 4 + . \"test\" \"coucou\" + .";
     c_fskprint("Lancement du code : %s\n", code);
 

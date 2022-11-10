@@ -85,6 +85,12 @@ ParsedProgram_t run_parser(LexedProgram_t program) {
         }
     }
 
+    // free the memory allocated by the lexer
+    for (int i = 0; i < program.size; i++) {
+        c_free(program.words[i].word);
+    }
+    c_free(program.words);
+
     // create the parsed program
     ParsedProgram_t parsed_program;
     parsed_program.instructions = instructions;
