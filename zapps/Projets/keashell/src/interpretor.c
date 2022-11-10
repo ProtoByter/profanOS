@@ -3,8 +3,6 @@
 #include "interpretor.h"
 
 int run_interpretor(ParsedProgram_t program) {
-    // TODO: free the memory allocated by the parser
-
     // create the stack
     int STACK_SIZE = 100;
     ElementStack_t stack;

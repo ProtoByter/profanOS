@@ -3,8 +3,6 @@
 #include "parser.h"
 
 ParsedProgram_t run_parser(LexedProgram_t program) {
-    // TODO: free the memory allocated by the lexer
-
     // create the instructions list
     Instruction_t *instructions = NULL;
     Instruction_t *current_instruction = NULL;

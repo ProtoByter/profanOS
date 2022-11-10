@@ -7,6 +7,7 @@ typedef enum WordType_t {
     W_COMMAND
 } WordType_t;
 
+// TODO : add positionning
 typedef struct Word_t {
     WordType_t type;
     char *word;
