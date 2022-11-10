@@ -1,0 +1,75 @@
+#include <syscall.h>
+#include "lexer.h"
+
+int str_is_number(char *str);
+
+LexedProgram_t run_lexer(char *code) { 
+    LexedProgram_t program;
+
+    // count the number of words
+    program.size = 0;
+    for (int i = 0; i < c_str_len(code); i++) {
+        if (code[i] == ' ') {
+            program.size++;
+        }
+    }
+    program.size++;
+
+    // allocate the words
+    program.words = (Word_t *) c_malloc(sizeof(Word_t) * program.size);
+    char *word = (char *) c_malloc(sizeof(char) * 100);
+    int word_index = 0;
+    int program_index = 0;
+
+    // fill the words
+    for (int i = 0; i < c_str_len(code); i++) {
+        if (code[i] == ' ') {
+            word[word_index] = '\0';
+            program.words[program_index].word = word;
+            program_index++;
+            word = (char *) c_malloc(sizeof(char) * 100);
+            word_index = 0;
+        } else {
+            word[word_index] = code[i];
+            word_index++;
+        }
+    }
+    program.words[program_index].word = word;
+    program.words[program_index].word[word_index] = '\0';
+
+    // set the type of each word (number, string, command)
+    for (int i = 0; i < program.size; i++) {
+        // if the word is a number
+        if (str_is_number(program.words[i].word)) {
+            program.words[i].type = W_NUMBER;
+        } 
+        // if the word is a string starting and ending with ""
+        else if (program.words[i].word[0] == '"' && program.words[i].word[c_str_len(program.words[i].word) - 1] == '"') {
+            program.words[i].type = W_STRING;
+            // remove the " at the beginning and the end of the string
+            // TODO : CHECK FOR MEMORY LEAK (make a c_str_sub ?)
+            char *new_word = (char *) c_malloc(sizeof(char) * 100);
+            for (int j = 1; j < c_str_len(program.words[i].word) - 1; j++) {
+                new_word[j - 1] = program.words[i].word[j];
+            }
+            new_word[c_str_len(program.words[i].word) - 2] = '\0';
+            program.words[i].word = new_word;
+
+        }
+        // if the word is a command
+        else {
+            program.words[i].type = W_COMMAND;
+        }
+    }
+    
+    return program;
+}
+
+int str_is_number(char *str) {
+    for (int i = 0; i < c_str_len(str); i++) {
+        if (str[i] < '0' || str[i] > '9') {
+            return 0;
+        }
+    }
+    return 1;
+}
