@@ -94,9 +94,9 @@ int run_interpretor(ParsedProgram_t program) {
         }
 
         // go to the next instruction
-        int to_free = (int) program.instructions;
+        void *to_free = (void *) program.instructions;
         program.instructions = program.instructions->next;
-        c_free((void *) to_free);
+        c_free(to_free);
     }
 
     while (stack.top_index >= 0) {
