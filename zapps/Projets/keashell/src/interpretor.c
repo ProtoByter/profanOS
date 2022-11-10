@@ -12,11 +12,17 @@ int run_interpretor(ParsedProgram_t program) {
     stack.size = STACK_SIZE;
     stack.top_index = -1;
 
+    // store the error code
+    int error_code = NO_ERROR;
+
     while (program.instructions != NULL) {
         if (program.instructions->type == I_PUSH) {
             // if the stack is full
             if (stack.top_index == stack.size - 1) {
-                return ERROR_STACK_OVERFLOW;
+                error_code = ERROR_STACK_OVERFLOW;
+                // special case : we need to free the memory allocated by the parser
+                c_free(program.instructions->element);
+                break;
             }
             // add the element to the stack
             stack.top_index++;
@@ -36,7 +42,8 @@ int run_interpretor(ParsedProgram_t program) {
         }
         else if (program.instructions->type == I_ADD) {
             if (stack.top_index < 1) {
-                return ERROR_STACK_UNDERFLOW;
+                error_code =  ERROR_STACK_UNDERFLOW;
+                break;
             }
             // if the two elements are numbers
             if (stack.element_list[stack.top_index].data_type == E_NUMBER && stack.element_list[stack.top_index - 1].data_type == E_NUMBER) {
@@ -70,7 +77,8 @@ int run_interpretor(ParsedProgram_t program) {
                 stack.element_list[stack.top_index] = element;
             }
             else {
-                return ERROR_CANNOT_ADD_TWO_ELEMENTS_WHO_ARE_NOT_OF_THE_SAME_TYPE;
+                error_code = ERROR_CANNOT_ADD_TWO_ELEMENTS_WHO_ARE_NOT_OF_THE_SAME_TYPE;
+                break;
             }
         }
         else if (program.instructions->type == I_PRINT) {
@@ -89,7 +97,8 @@ int run_interpretor(ParsedProgram_t program) {
                 stack.top_index--;
             }
             else {
-                return ERROR_INVALID_TYPE_PRINT;
+                error_code = ERROR_INVALID_TYPE_PRINT;
+                break;
             }
         }
 
@@ -97,6 +106,17 @@ int run_interpretor(ParsedProgram_t program) {
         void *to_free = (void *) program.instructions;
         program.instructions = program.instructions->next;
         c_free(to_free);
+    }
+
+    // if there is an error code, we need to free program.instructions
+    if (error_code != NO_ERROR) {
+        while (program.instructions != NULL) {
+            // free the memory allocated by the parser
+            c_free(program.instructions->element);
+            void *to_free = (void *) program.instructions;
+            program.instructions = program.instructions->next;
+            c_free(to_free);
+        }
     }
 
     while (stack.top_index >= 0) {
@@ -108,5 +128,5 @@ int run_interpretor(ParsedProgram_t program) {
     c_free(stack.element_list);
     c_free(program.instructions);
 
-    return NO_ERROR;
+    return error_code;
 }
