@@ -7,6 +7,10 @@
 int run_typecheck(ParsedProgram_t Program, Settings_t settings) {
     // TODO : show the user at what line and character the error occured
 
+    if (settings.flags & FLAG_NO_TYPECHECK) {
+        return NO_ERROR;
+    }
+
     ErrorCodes_t error_code = NO_ERROR;
 
     // the type stack

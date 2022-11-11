@@ -35,6 +35,6 @@ typedef struct ParsedProgram_t {
     Instruction_t *instructions;
 } ParsedProgram_t;
 
-ParsedProgram_t run_parser(LexedProgram_t program, Settings_t settings);
+ParsedProgram_t run_parser(LexedProgram_t program, Settings_t settings, int in_recursive_call);
 
 #endif 

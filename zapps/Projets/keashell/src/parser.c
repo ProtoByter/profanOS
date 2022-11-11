@@ -3,17 +3,10 @@
 #include "parser.h"
 #include "settings.h"
 
-void add_instruction(Instruction_t **instructions, Instruction_t **instruction, Instruction_t **current_instruction) {
-    if (*instructions == NULL) {
-        *instructions = *instruction;
-    } else {
-        (*current_instruction)->next_instruction = *instruction;
-    }
-    *current_instruction = *instruction;
-}
+void add_instruction(Instruction_t **instructions, Instruction_t **instruction, Instruction_t **current_instruction);
+void print_parser_output(Instruction_t *instructions, int first);
 
-
-ParsedProgram_t run_parser(LexedProgram_t program, Settings_t settings) {
+ParsedProgram_t run_parser(LexedProgram_t program, Settings_t settings, int in_recursive_call) {
     // create the instructions list
     Instruction_t *instructions = NULL;
     Instruction_t *current_instruction = NULL;
@@ -105,7 +98,7 @@ ParsedProgram_t run_parser(LexedProgram_t program, Settings_t settings) {
                     j++;
                 }
                 // parse the program
-                ParsedProgram_t program_branch_parsed = run_parser(program_branch, settings);
+                ParsedProgram_t program_branch_parsed = run_parser(program_branch, settings, 1);
                 // add the instruction branch to the instruction
                 instruction->instruction_branch = program_branch_parsed.instructions;
                 // update the index
@@ -134,5 +127,56 @@ ParsedProgram_t run_parser(LexedProgram_t program, Settings_t settings) {
     ParsedProgram_t parsed_program;
     parsed_program.instructions = instructions;
 
+    if (settings.flags & FLAG_PRINT_PARSER_OUTPUT && !in_recursive_call) {
+        print_parser_output(parsed_program.instructions, 0);
+    }
+
     return parsed_program;
+}
+
+void add_instruction(Instruction_t **instructions, Instruction_t **instruction, Instruction_t **current_instruction) {
+    if (*instructions == NULL) {
+        *instructions = *instruction;
+    } else {
+        (*current_instruction)->next_instruction = *instruction;
+    }
+    *current_instruction = *instruction;
+}
+
+void print_parser_output(Instruction_t *instructions, int first) {
+    if (first == 0) {
+        c_fskprint("Parser output:\n");
+    }
+    c_fskprint("(");
+    Instruction_t *current_instruction = instructions;
+    while (current_instruction != NULL) {
+        switch (current_instruction->type) {
+            case I_PUSH:
+                if (current_instruction->element->data_type == E_NUMBER) {
+                    c_fskprint(" PUSH(%d)", current_instruction->element->data_int);
+                } else if (current_instruction->element->data_type == E_STRING) {
+                    c_fskprint(" PUSH(\"%s\")", current_instruction->element->data_str);
+                }
+                break;
+            case I_ADD:
+                c_fskprint(" ADD");
+                break;
+            case I_PRINT:
+                c_fskprint(" PRINT");
+                break;
+            case I_IF:
+                c_fskprint(" IF");
+                // TODO : print the instruction branch
+                print_parser_output(current_instruction->instruction_branch, 1);
+                break;
+            case I_UNKNOWN:
+                c_fskprint(" UNKNOWN");
+                break;
+        }
+        current_instruction = current_instruction->next_instruction;
+    }
+    c_fskprint(" )");
+    if (first == 0) {
+        c_fskprint("\n");
+    }
 }

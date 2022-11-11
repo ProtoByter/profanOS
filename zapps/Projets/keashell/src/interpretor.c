@@ -5,7 +5,7 @@
 
 int run_interpretor(ParsedProgram_t program, Settings_t settings) {
 
-    if (settings->flags & FLAG_NO_INTERPRETOR) {
+    if (settings.flags & FLAG_NO_INTERPRETOR) {
         return NO_ERROR;
     }
 

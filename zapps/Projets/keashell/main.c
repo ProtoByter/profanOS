@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     while (1) {
 
         Settings_t settings;
-        settings.flags = 1;
+        settings.flags = FLAG_PRINT_PARSER_OUTPUT;
 
         char *code = (char *) c_malloc(sizeof(char) * 1000);
         c_fskprint("Keashell >>> ");
@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
         c_fskprint("\n");
 
         LexedProgram_t program = run_lexer(code, settings);
-        ParsedProgram_t parsed_program = run_parser(program, settings);
+        ParsedProgram_t parsed_program = run_parser(program, settings, 0);
 
         int typecheck_error_code = run_typecheck(parsed_program, settings);
 
