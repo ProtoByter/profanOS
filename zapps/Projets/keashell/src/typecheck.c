@@ -6,6 +6,7 @@
 
 int runT(TypeStack_t type_stack, Instruction_t *Program_instructions, Settings_t settings) {
     // TODO : show the user at what line and character the error occured
+    // TODO : fix memory leak when typecheck gets an error
 
     if (settings.flags & FLAG_NO_TYPECHECK) {
         return NO_ERROR;
@@ -112,9 +113,6 @@ int runT(TypeStack_t type_stack, Instruction_t *Program_instructions, Settings_t
         error_code = ERROR_STACK_NOT_EMPTY;
     }
 
-    // we free the memory allocated by the type stack
-    c_free(type_stack.element_list);
-
     return error_code;
 }
 
@@ -126,5 +124,8 @@ int run_typecheck(ParsedProgram_t Program, Settings_t settings) {
     type_stack.max_size = 100;
     type_stack.element_list = (InstructionDataType_t *) c_malloc(sizeof(InstructionDataType_t) * type_stack.max_size);
 
-    return runT(type_stack, Program.instructions, settings);
+    int return_value = runT(type_stack, Program.instructions, settings);
+    c_free(type_stack.element_list);
+
+    return return_value;
 }

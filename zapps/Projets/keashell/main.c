@@ -37,6 +37,10 @@ int main(int argc, char **argv) {
             }
         }
 
+        c_free(code);
+
+        c_mem_print();
+
     }
 
     while (1);
