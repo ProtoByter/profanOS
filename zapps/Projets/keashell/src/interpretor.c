@@ -3,7 +3,7 @@
 #include "interpretor.h"
 #include "settings.h"
 
-int run_interpretor(ParsedProgram_t program, Settings_t settings) {
+int runI(Instruction_t *program_instructions, Settings_t settings) {
 
     if (settings.flags & FLAG_NO_INTERPRETOR) {
         return NO_ERROR;
@@ -19,38 +19,38 @@ int run_interpretor(ParsedProgram_t program, Settings_t settings) {
     // store the error code
     int error_code = NO_ERROR;
 
-    while (program.instructions != NULL) {
+    while (program_instructions != NULL) {
         // shouldn't happend, but in case i forgor to add a break after an error
         if (error_code != NO_ERROR) {
             error_code = ERROR_NOT_RECHEABLE;
             break;
         }
 
-        if (program.instructions->type == I_PUSH) {
+        if (program_instructions->type == I_PUSH) {
             // if the stack is full
             if (stack.top_index == stack.size - 1) {
                 error_code = ERROR_STACK_OVERFLOW;
                 // special case : we need to free the memory allocated by the parser
-                c_free(program.instructions->element);
+                c_free(program_instructions->element);
                 break;
             }
             // add the element to the stack
             stack.top_index++;
             // new element beacause we change types
             InterpretorElement_t element;
-            element.data_type = program.instructions->element->data_type;
-            element.data_int = program.instructions->element->data_int;
-            if (program.instructions->element->data_type == E_STRING) {
-                element.data_str = (char *) c_malloc(sizeof(char)*c_str_len(program.instructions->element->data_str));
-                c_str_cpy(element.data_str, program.instructions->element->data_str);
+            element.data_type = program_instructions->element->data_type;
+            element.data_int = program_instructions->element->data_int;
+            if (program_instructions->element->data_type == E_STRING) {
+                element.data_str = (char *) c_malloc(sizeof(char)*c_str_len(program_instructions->element->data_str));
+                c_str_cpy(element.data_str, program_instructions->element->data_str);
             } else {
                 element.data_str = NULL;
             }
             stack.element_list[stack.top_index] = element;
             // free the memory allocated by the parser
-            c_free(program.instructions->element);
+            c_free(program_instructions->element);
         }
-        else if (program.instructions->type == I_ADD) {
+        else if (program_instructions->type == I_ADD) {
             if (stack.top_index < 1) {
                 error_code =  ERROR_STACK_UNDERFLOW;
                 break;
@@ -91,7 +91,7 @@ int run_interpretor(ParsedProgram_t program, Settings_t settings) {
                 break;
             }
         }
-        else if (program.instructions->type == I_PRINT) {
+        else if (program_instructions->type == I_PRINT) {
             if (stack.top_index < 0) {
                 return ERROR_STACK_UNDERFLOW;
             }
@@ -111,26 +111,55 @@ int run_interpretor(ParsedProgram_t program, Settings_t settings) {
                 break;
             }
         }
+        else if (program_instructions->type == I_IF) {
+            // if the stack is empty
+            if (stack.top_index < 0) {
+                error_code = ERROR_STACK_UNDERFLOW;
+                break;
+            }
+            int condition = 0;
+            // if the element is a number
+            if (stack.element_list[stack.top_index].data_type == E_NUMBER) {
+                condition = stack.element_list[stack.top_index].data_int;
+                stack.top_index--;
+            }
+            // if the element is a string
+            else if (stack.element_list[stack.top_index].data_type == E_STRING) {
+                condition = c_str_len(stack.element_list[stack.top_index].data_str);
+                c_free(stack.element_list[stack.top_index].data_str);
+                stack.top_index--;
+            }
+            else {
+                error_code = ERROR_INVALID_TYPE_IF;
+                break;
+            }
+            // if the condition is true
+            if (condition) {
+                // we need to execute the instructions
+                Instruction_t *temp_instructions = program_instructions->instruction_branch;
+                runI(temp_instructions, settings);
+            }
+        }
 
         // if the instruction is unknown
-        else if (program.instructions->type == I_UNKNOWN) {
+        else if (program_instructions->type == I_UNKNOWN) {
             error_code = ERROR_UNKNOWN_INSTRUCTION;
             break;
         }
 
         // go to the next instruction
-        void *to_free = (void *) program.instructions;
-        program.instructions = program.instructions->next_instruction;
+        void *to_free = (void *) program_instructions;
+        program_instructions = program_instructions->next_instruction;
         c_free(to_free);
     }
 
-    // if there is an error code, we need to free program.instructions
+    // if there is an error code, we need to free program_instructions
     if (error_code != NO_ERROR) {
-        while (program.instructions != NULL) {
+        while (program_instructions != NULL) {
             // free the memory allocated by the parser
-            c_free(program.instructions->element);
-            void *to_free = (void *) program.instructions;
-            program.instructions = program.instructions->next_instruction;
+            c_free(program_instructions->element);
+            void *to_free = (void *) program_instructions;
+            program_instructions = program_instructions->next_instruction;
             c_free(to_free);
         }
     }
@@ -142,7 +171,12 @@ int run_interpretor(ParsedProgram_t program, Settings_t settings) {
         stack.top_index--;
     }
     c_free(stack.element_list);
-    c_free(program.instructions);
+    c_free(program_instructions);
 
     return error_code;
+}
+
+int run_interpretor(ParsedProgram_t program, Settings_t settings) {
+    Instruction_t *temp_instructions = program.instructions;
+    return runI(temp_instructions, settings);
 }

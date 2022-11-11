@@ -4,7 +4,7 @@
 #include "typecheck.h"
 #include "settings.h"
 
-int run(TypeStack_t type_stack, Instruction_t *Program_instructions, Settings_t settings) {
+int runT(TypeStack_t type_stack, Instruction_t *Program_instructions, Settings_t settings) {
     // TODO : show the user at what line and character the error occured
 
     if (settings.flags & FLAG_NO_TYPECHECK) {
@@ -83,7 +83,7 @@ int run(TypeStack_t type_stack, Instruction_t *Program_instructions, Settings_t 
             for (int i = 0; i < type_stack.top_index; i++) {
                 type_stack_copy.element_list[i] = type_stack.element_list[i];
             }
-            error_code = run(type_stack_copy, current_instruction->instruction_branch, settings);
+            error_code = runT(type_stack_copy, current_instruction->instruction_branch, settings);
             // if the length of the type stack is not the same
             if (type_stack_copy.top_index != type_stack.top_index) {
                 error_code = ERROR_STACK_NOT_EMPTY_AFTER_IF;
@@ -126,5 +126,5 @@ int run_typecheck(ParsedProgram_t Program, Settings_t settings) {
     type_stack.max_size = 100;
     type_stack.element_list = (InstructionDataType_t *) c_malloc(sizeof(InstructionDataType_t) * type_stack.max_size);
 
-    return run(type_stack, Program.instructions, settings);
+    return runT(type_stack, Program.instructions, settings);
 }

@@ -17,6 +17,7 @@ typedef enum ErrorCodes_t {
     ERROR_UNKNOWN_INSTRUCTION = 7,
     ERROR_STACK_NOT_EMPTY_AFTER_IF = 8,
     ERROR_STACK_NOT_SAME_AFTER_IF = 9,
+    ERROR_INVALID_TYPE_IF = 10,
 } ErrorCodes_t;
 
 // a type stack
