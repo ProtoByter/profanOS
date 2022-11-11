@@ -4,7 +4,7 @@
 #include "typecheck.h"
 #include "settings.h"
 
-int run(Instruction_t *Program_instructions, Settings_t settings) {
+int run(TypeStack_t type_stack, Instruction_t *Program_instructions, Settings_t settings) {
     // TODO : show the user at what line and character the error occured
 
     if (settings.flags & FLAG_NO_TYPECHECK) {
@@ -12,12 +12,6 @@ int run(Instruction_t *Program_instructions, Settings_t settings) {
     }
 
     ErrorCodes_t error_code = NO_ERROR;
-
-    // the type stack
-    TypeStack_t type_stack;
-    type_stack.top_index = 0;
-    type_stack.max_size = 100;
-    type_stack.element_list = (InstructionDataType_t *) c_malloc(sizeof(InstructionDataType_t) * type_stack.max_size);
 
     // temp variable to not channge the program
     Instruction_t *current_instruction = Program_instructions;
@@ -70,6 +64,40 @@ int run(Instruction_t *Program_instructions, Settings_t settings) {
             type_stack.top_index--;
         }
 
+        else if (current_instruction->type == I_IF) {
+            // TO REWRITE, MIGHT BE BUGGY BEACAUSE OF THE STACK (I THINK)
+
+            // if the stack underflow
+            if (type_stack.top_index < 1) {
+                error_code = ERROR_STACK_UNDERFLOW;
+            }
+            // we pop the type of the instruction
+            type_stack.top_index--;
+
+            // than we typecheck the branch
+            // we make a copy of the type stack
+            TypeStack_t type_stack_copy;
+            type_stack_copy.top_index = type_stack.top_index;
+            type_stack_copy.max_size = type_stack.max_size;
+            type_stack_copy.element_list = (InstructionDataType_t *) c_malloc(type_stack.max_size * sizeof(InstructionDataType_t));
+            for (int i = 0; i < type_stack.top_index; i++) {
+                type_stack_copy.element_list[i] = type_stack.element_list[i];
+            }
+            error_code = run(type_stack_copy, current_instruction->instruction_branch, settings);
+            // if the length of the type stack is not the same
+            if (type_stack_copy.top_index != type_stack.top_index) {
+                error_code = ERROR_STACK_NOT_EMPTY_AFTER_IF;
+            }
+            // if the type of the elements are not the same
+            for (int i = 0; i < type_stack.top_index; i++) {
+                if (type_stack_copy.element_list[i] != type_stack.element_list[i]) {
+                    error_code = ERROR_STACK_NOT_SAME_AFTER_IF;
+                }
+            }
+            // we free the copy
+            c_free(type_stack_copy.element_list);
+        }
+
         // if the instruction is unknown
         else if (current_instruction->type == I_UNKNOWN) {
             error_code = ERROR_UNKNOWN_INSTRUCTION;
@@ -91,5 +119,12 @@ int run(Instruction_t *Program_instructions, Settings_t settings) {
 }
 
 int run_typecheck(ParsedProgram_t Program, Settings_t settings) {
-    return run(Program->instructions, settings);
+
+    // the type stack
+    TypeStack_t type_stack;
+    type_stack.top_index = 0;
+    type_stack.max_size = 100;
+    type_stack.element_list = (InstructionDataType_t *) c_malloc(sizeof(InstructionDataType_t) * type_stack.max_size);
+
+    return run(type_stack, Program.instructions, settings);
 }

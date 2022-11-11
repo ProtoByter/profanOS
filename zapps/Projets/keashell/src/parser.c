@@ -66,6 +66,9 @@ ParsedProgram_t run_parser(LexedProgram_t program, Settings_t settings, int in_r
             }
             // if the command is an if
             else if (c_str_cmp(program.words[i].word, "if") == 0) {
+                // TODO : take into account ifs in ifs
+                // TODO : add recursives ifs
+
                 // special case beacause we need to put in instruction.instruction_branch everything until the end
                 Instruction_t *instruction = (Instruction_t *) c_malloc(sizeof(Instruction_t));
                 instruction->type = I_IF;
@@ -83,20 +86,35 @@ ParsedProgram_t run_parser(LexedProgram_t program, Settings_t settings, int in_r
                 program_branch.words = NULL;
                 int j = i + 1;
                 // we get the size we need to alloc
+                int if_counts = 1;
+                int end_counts = 0;
                 int size = 0;
-                while (c_str_cmp(program.words[j].word, "end") != 0) {
+                while (1) {
+                    if (c_str_cmp(program.words[j].word, "if") == 0) {
+                        if_counts++;
+                    } else if (c_str_cmp(program.words[j].word, "end") == 0) {
+                        end_counts++;
+                    }
+                    if (if_counts == end_counts) {
+                        break;
+                    }
                     size++;
                     j++;
                 }
                 // we alloc the words
                 program_branch.words = (Word_t *) c_malloc(sizeof(Word_t) * size);
-                // we copy the words
-                j = i + 1;
-                while (c_str_cmp(program.words[j].word, "end") != 0) {
-                    program_branch.words[program_branch.size] = program.words[j];
+                for (int k = i + 1; k < j; k++) {
+                    program_branch.words[program_branch.size] = program.words[k];
                     program_branch.size++;
-                    j++;
                 }
+                
+                // show the program
+                if (settings.flags & FLAG_PRINT_PARSER_OUTPUT) {
+                    for (int k = 0; k < program_branch.size; k++) {
+                        c_fskprint("%s ", program_branch.words[k].word);
+                    } c_fskprint("\n");
+                }
+                
                 // parse the program
                 ParsedProgram_t program_branch_parsed = run_parser(program_branch, settings, 1);
                 // add the instruction branch to the instruction
@@ -166,11 +184,10 @@ void print_parser_output(Instruction_t *instructions, int first) {
                 break;
             case I_IF:
                 c_fskprint(" IF");
-                // TODO : print the instruction branch
                 print_parser_output(current_instruction->instruction_branch, 1);
                 break;
             case I_UNKNOWN:
-                c_fskprint(" UNKNOWN");
+                c_fskprint(" UNKNOWN(%d,%s,%d)", current_instruction->element->data_type, current_instruction->element->data_str, current_instruction->element->data_int);
                 break;
         }
         current_instruction = current_instruction->next_instruction;

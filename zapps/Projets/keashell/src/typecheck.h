@@ -15,6 +15,8 @@ typedef enum ErrorCodes_t {
     ERROR_NOT_RECHEABLE = 5,
     ERROR_STACK_NOT_EMPTY = 6,
     ERROR_UNKNOWN_INSTRUCTION = 7,
+    ERROR_STACK_NOT_EMPTY_AFTER_IF = 8,
+    ERROR_STACK_NOT_SAME_AFTER_IF = 9,
 } ErrorCodes_t;
 
 // a type stack
