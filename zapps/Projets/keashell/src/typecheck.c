@@ -4,7 +4,7 @@
 #include "typecheck.h"
 #include "settings.h"
 
-int run_typecheck(ParsedProgram_t Program, Settings_t settings) {
+int run(Instruction_t *Program_instructions, Settings_t settings) {
     // TODO : show the user at what line and character the error occured
 
     if (settings.flags & FLAG_NO_TYPECHECK) {
@@ -20,7 +20,7 @@ int run_typecheck(ParsedProgram_t Program, Settings_t settings) {
     type_stack.element_list = (InstructionDataType_t *) c_malloc(sizeof(InstructionDataType_t) * type_stack.max_size);
 
     // temp variable to not channge the program
-    Instruction_t *current_instruction = Program.instructions;
+    Instruction_t *current_instruction = Program_instructions;
 
     // we loop on every instruction
     while (current_instruction != NULL) {
@@ -88,4 +88,8 @@ int run_typecheck(ParsedProgram_t Program, Settings_t settings) {
     c_free(type_stack.element_list);
 
     return error_code;
+}
+
+int run_typecheck(ParsedProgram_t Program, Settings_t settings) {
+    return run(Program->instructions, settings);
 }
