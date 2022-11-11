@@ -3,6 +3,7 @@
 
 #include "parser.h"
 #include "typecheck.h"
+#include "settings.h"
 
 typedef struct InterpretorElement_t {
     int data_type;
@@ -16,6 +17,6 @@ typedef struct ElementStack_t {
     int top_index;
 } ElementStack_t;
 
-int run_interpretor(ParsedProgram_t program);
+int run_interpretor(ParsedProgram_t program, Settings_t settings);
 
 #endif 

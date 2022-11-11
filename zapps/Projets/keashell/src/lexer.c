@@ -1,9 +1,10 @@
 #include <syscall.h>
 #include "lexer.h"
+#include "settings.h"
 
 int str_is_number(char *str);
 
-LexedProgram_t run_lexer(char *code) { 
+LexedProgram_t run_lexer(char *code, Settings_t settings) { 
     LexedProgram_t program;
 
     // count the number of words

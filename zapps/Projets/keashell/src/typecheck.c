@@ -2,8 +2,9 @@
 #include "lexer.h"
 #include "parser.h"
 #include "typecheck.h"
+#include "settings.h"
 
-int run_typecheck(ParsedProgram_t Program) {
+int run_typecheck(ParsedProgram_t Program, Settings_t settings) {
     // TODO : show the user at what line and character the error occured
 
     ErrorCodes_t error_code = NO_ERROR;
@@ -19,6 +20,9 @@ int run_typecheck(ParsedProgram_t Program) {
 
     // we loop on every instruction
     while (current_instruction != NULL) {
+        // show the instruction
+        // c_fskprint("Instruction : %d, ", current_instruction->type);
+
         if (error_code != NO_ERROR) {
             // if there is an error, we stop the typecheck there
             break;
@@ -62,8 +66,13 @@ int run_typecheck(ParsedProgram_t Program) {
             type_stack.top_index--;
         }
 
+        // if the instruction is unknown
+        else if (current_instruction->type == I_UNKNOWN) {
+            error_code = ERROR_UNKNOWN_INSTRUCTION;
+        }
+
         // we go to the next instruction
-        current_instruction = current_instruction->next;
+        current_instruction = current_instruction->next_instruction;
     }
 
     // if the stack is not empty

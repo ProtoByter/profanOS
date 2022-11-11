@@ -3,6 +3,7 @@
 
 #include "parser.h"
 #include "lexer.h"
+#include "settings.h"
 
 // TODO : make error codes a typedef struct { int code; char *message; } ErrorCode_t;
 typedef enum ErrorCodes_t {
@@ -13,6 +14,7 @@ typedef enum ErrorCodes_t {
     ERROR_INVALID_TYPE_PRINT = 4,
     ERROR_NOT_RECHEABLE = 5,
     ERROR_STACK_NOT_EMPTY = 6,
+    ERROR_UNKNOWN_INSTRUCTION = 7,
 } ErrorCodes_t;
 
 // a type stack
@@ -22,6 +24,6 @@ typedef struct TypeStack_t {
     InstructionDataType_t *element_list;
 } TypeStack_t;
 
-int run_typecheck(ParsedProgram_t Program);
+int run_typecheck(ParsedProgram_t Program, Settings_t settings);
 
 #endif 

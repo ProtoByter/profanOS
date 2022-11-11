@@ -1,6 +1,8 @@
 #ifndef KEASHELL_LEXER_H
 #define KEASHELL_LEXER_H
 
+#include "settings.h"
+
 typedef enum WordType_t {
     W_NUMBER,
     W_STRING,
@@ -18,6 +20,6 @@ typedef struct LexedProgram_t {
     Word_t *words;
 } LexedProgram_t;
 
-LexedProgram_t run_lexer(char *code);
+LexedProgram_t run_lexer(char *code, Settings_t settings);
 
 #endif 

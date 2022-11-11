@@ -1,8 +1,14 @@
 #include <syscall.h>
 
 #include "interpretor.h"
+#include "settings.h"
 
-int run_interpretor(ParsedProgram_t program) {
+int run_interpretor(ParsedProgram_t program, Settings_t settings) {
+
+    if (settings->flags & FLAG_NO_INTERPRETOR) {
+        return NO_ERROR;
+    }
+
     // create the stack
     int STACK_SIZE = 100;
     ElementStack_t stack;
@@ -106,9 +112,15 @@ int run_interpretor(ParsedProgram_t program) {
             }
         }
 
+        // if the instruction is unknown
+        else if (program.instructions->type == I_UNKNOWN) {
+            error_code = ERROR_UNKNOWN_INSTRUCTION;
+            break;
+        }
+
         // go to the next instruction
         void *to_free = (void *) program.instructions;
-        program.instructions = program.instructions->next;
+        program.instructions = program.instructions->next_instruction;
         c_free(to_free);
     }
 
@@ -118,7 +130,7 @@ int run_interpretor(ParsedProgram_t program) {
             // free the memory allocated by the parser
             c_free(program.instructions->element);
             void *to_free = (void *) program.instructions;
-            program.instructions = program.instructions->next;
+            program.instructions = program.instructions->next_instruction;
             c_free(to_free);
         }
     }
