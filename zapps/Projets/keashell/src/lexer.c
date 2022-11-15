@@ -55,7 +55,9 @@ LexedProgram_t run_lexer(char *code, Settings_t settings) {
             }
             new_word[c_str_len(program.words[i].word) - 2] = '\0';
             c_str_cpy(program.words[i].word, new_word);
-            c_free(new_word);            
+            c_free(new_word);      
+
+            // TODO : go trough the string, replacing \N with a space, \n with a newline, \t with a tab, etc. (see https://en.wikipedia.org/wiki/Escape_sequences_in_C)
         }
         // if the word is a command
         else {
