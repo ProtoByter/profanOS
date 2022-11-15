@@ -3,9 +3,9 @@
 
 // every number is the precedent * 2
 typedef enum flags_t {
-    FLAG_NO_INTERPRETOR = 1,
-    FLAG_NO_TYPECHECK = 2,
-    FLAG_PRINT_PARSER_OUTPUT = 4,
+    FLAG_NO_INTERPRETOR = 1<<0,
+    FLAG_NO_TYPECHECK = 1<<1,
+    FLAG_PRINT_PARSER_OUTPUT = 1<<2,
 } flags_t;
 
 
