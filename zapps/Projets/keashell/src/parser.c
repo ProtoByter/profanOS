@@ -43,7 +43,7 @@ ParsedProgram_t run_parser(LexedProgram_t program, Settings_t settings, int in_r
             add_instruction(&instructions, &instruction, &current_instruction);
         }
         // if the word is a command
-        else {
+        else if (program.words[i].type == W_COMMAND) {
             // if the command is +
             if (c_str_cmp(program.words[i].word, "+") == 0) {
                 // create the instruction
