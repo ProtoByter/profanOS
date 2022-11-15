@@ -3,6 +3,8 @@
 #include "interpretor.h"
 #include "settings.h"
 
+void free_data(Instruction_t *instructions);
+
 int runI(Instruction_t *program_instructions, Settings_t settings) {
 
     if (settings.flags & FLAG_NO_INTERPRETOR) {
@@ -133,11 +135,24 @@ int runI(Instruction_t *program_instructions, Settings_t settings) {
                 error_code = ERROR_INVALID_TYPE_IF;
                 break;
             }
-            // if the condition is true
+            // if the condition is true we need to execute the instructions
             if (condition) {
-                // we need to execute the instructions
                 Instruction_t *temp_instructions = program_instructions->instruction_branch;
                 runI(temp_instructions, settings);
+            }
+            // if the condition is false, we need to go trough the instructions to free the memory
+            // to check, but it should work
+            else {
+                Instruction_t *temp_instructions = program_instructions->instruction_branch;
+                while (temp_instructions != NULL) {
+                    // free if push
+                    if (temp_instructions->type == I_PUSH) {
+                        c_free(temp_instructions->element);
+                    }
+                    void *to_free = (void *) temp_instructions;
+                    temp_instructions = temp_instructions->next_instruction;
+                    c_free(to_free);
+                }
             }
         }
 
@@ -155,13 +170,7 @@ int runI(Instruction_t *program_instructions, Settings_t settings) {
 
     // if there is an error code, we need to free program_instructions
     if (error_code != NO_ERROR) {
-        while (program_instructions != NULL) {
-            // free the memory allocated by the parser
-            c_free(program_instructions->element);
-            void *to_free = (void *) program_instructions;
-            program_instructions = program_instructions->next_instruction;
-            c_free(to_free);
-        }
+        free_data(program_instructions);
     }
 
     while (stack.top_index >= 0) {
@@ -179,4 +188,19 @@ int runI(Instruction_t *program_instructions, Settings_t settings) {
 int run_interpretor(ParsedProgram_t program, Settings_t settings) {
     Instruction_t *temp_instructions = program.instructions;
     return runI(temp_instructions, settings);
+}
+
+void free_data(Instruction_t *instructions) {
+    while (instructions != NULL) {
+        // free the memory allocated by the parser
+        c_free(instructions->element);
+        // if the instruction is an if, we need to free the program branch too
+        if (instructions->type == I_IF) {
+            Instruction_t *temp_instructions_branch = instructions->instruction_branch;
+            free_data(temp_instructions_branch);
+        }
+        void *to_free = (void *) instructions;
+        instructions = instructions->next_instruction;
+        c_free(to_free);
+    }
 }

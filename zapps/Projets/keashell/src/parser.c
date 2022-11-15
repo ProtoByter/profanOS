@@ -100,6 +100,11 @@ ParsedProgram_t run_parser(LexedProgram_t program, Settings_t settings, int in_r
                     }
                     size++;
                     j++;
+                    // if we are at the end of the program
+                    if (j >= program.size) {
+                        // TODO : parser error
+                        break;
+                    }
                 }
                 // we alloc the words
                 program_branch.words = (Word_t *) c_malloc(sizeof(Word_t) * size);
@@ -108,12 +113,12 @@ ParsedProgram_t run_parser(LexedProgram_t program, Settings_t settings, int in_r
                     program_branch.size++;
                 }
                 
-                // show the program
-                if (settings.flags & FLAG_PRINT_PARSER_OUTPUT) {
-                    for (int k = 0; k < program_branch.size; k++) {
-                        c_fskprint("%s ", program_branch.words[k].word);
-                    } c_fskprint("\n");
-                }
+                // show the program (is this really needed ??)
+                // if (settings.flags & FLAG_PRINT_PARSER_OUTPUT) {
+                //     for (int k = 0; k < program_branch.size; k++) {
+                //         c_fskprint("%s ", program_branch.words[k].word);
+                //     } c_fskprint("\n");
+                // }
                 
                 // parse the program
                 ParsedProgram_t program_branch_parsed = run_parser(program_branch, settings, 1);
@@ -124,7 +129,8 @@ ParsedProgram_t run_parser(LexedProgram_t program, Settings_t settings, int in_r
             }
             // if the command is unknown
             else {
-                // create the instruction
+                // create the instruction and show an error message
+                c_fskprint("Unknown command : %s\n", program.words[i].word);
                 Instruction_t *instruction = (Instruction_t *) c_malloc(sizeof(Instruction_t));
                 instruction->type = I_UNKNOWN;
                 instruction->element = NULL;
