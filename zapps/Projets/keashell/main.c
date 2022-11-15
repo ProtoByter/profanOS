@@ -8,7 +8,6 @@ int main(int argc, char **argv) {
     // -Execution normale : DONE
     // -Execution avec erreur : DONE
 
-    // TODO : settings (flags) in a struct passed to everything
     // TODO : make a bytecode output
     // TODO : make a bytecode input
 
