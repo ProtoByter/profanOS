@@ -6,6 +6,8 @@ typedef enum flags_t {
     FLAG_NO_INTERPRETOR = 1<<0,
     FLAG_NO_TYPECHECK = 1<<1,
     FLAG_PRINT_PARSER_OUTPUT = 1<<2,
+    FLAG_PRINT_STACK = 1<<3,
+    FLAG_PRINT_MEMORY = 1<<4,
 } flags_t;
 
 

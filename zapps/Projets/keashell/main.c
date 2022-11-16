@@ -14,9 +14,10 @@ int main(int argc, char **argv) {
     while (1) {
 
         Settings_t settings;
-        settings.flags = !FLAG_NO_INTERPRETOR | !FLAG_NO_TYPECHECK | FLAG_PRINT_PARSER_OUTPUT;
+        settings.flags = !FLAG_NO_INTERPRETOR | !FLAG_NO_TYPECHECK | FLAG_PRINT_PARSER_OUTPUT | FLAG_PRINT_STACK | !FLAG_PRINT_MEMORY
+        ;	
 
-        char *code = (char *) c_malloc(sizeof(char) * 1000);
+        char *code = (char *) c_malloc(sizeof(char) * 1001);
         c_fskprint("Keashell >>> ");
         c_input(code, 1000, c_blue);
 
@@ -32,7 +33,9 @@ int main(int argc, char **argv) {
 
         c_free(code);
 
-        c_mem_print();
+        if (settings.flags & FLAG_PRINT_MEMORY) {
+            c_mem_print();
+        }
 
     }
 

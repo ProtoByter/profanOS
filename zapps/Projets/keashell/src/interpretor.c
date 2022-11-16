@@ -22,6 +22,20 @@ int runI(Instruction_t *program_instructions, Settings_t settings) {
     int error_code = NO_ERROR;
 
     while (program_instructions != NULL) {
+        if (settings.flags & FLAG_PRINT_STACK) {
+            c_fskprint("Stack: ");
+            for (int i = 0; i <= stack.top_index; i++) {
+                if (stack.element_list[i].data_type == E_NUMBER) {
+                    c_fskprint("%d ", stack.element_list[i].data_int);
+                } else if (stack.element_list[i].data_type == E_STRING) {
+                    c_fskprint("%s ", stack.element_list[i].data_str);
+                } else {
+                    c_fskprint("Unknown type ");
+                }
+            }
+            c_fskprint("\n");
+        }
+
         // shouldn't happend, but in case i forgor to add a break after an error
         if (error_code != NO_ERROR) {
             error_code = ERROR_NOT_RECHEABLE;
@@ -33,6 +47,9 @@ int runI(Instruction_t *program_instructions, Settings_t settings) {
             if (stack.top_index == stack.size - 1) {
                 error_code = ERROR_STACK_OVERFLOW;
                 // special case : we need to free the memory allocated by the parser
+                if (program_instructions->element->data_type == E_STRING) {
+                    c_free(program_instructions->element->data_str);
+                }
                 c_free(program_instructions->element);
                 break;
             }
