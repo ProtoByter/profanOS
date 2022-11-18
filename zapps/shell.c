@@ -85,7 +85,8 @@ int shell_command(char *buffer) {
         go(file, prefix, suffix);
         c_free(file);
     } else {  // shell command
-        char *old_prefix = c_malloc(c_str_len(prefix));
+        // we need to look into the path
+        /* char *old_prefix = c_malloc(c_str_len(prefix));
         c_str_cpy(old_prefix, prefix);
         if(!(c_str_count(prefix, '.'))) c_str_cat(prefix, ".bin");
         char *file = c_malloc(c_str_len(prefix) + c_str_len(current_dir) + 2);
@@ -96,7 +97,63 @@ int shell_command(char *buffer) {
             c_fskprint("$3%s$B is not a valid command.\n", old_prefix);
         }
         c_free(file);
-        c_free(old_prefix);
+        c_free(old_prefix); */
+
+        // we read /user/path.txt
+        char path_to_path[] = "/user/path.txt";
+        if (!c_fs_does_path_exists(path_to_path)) {
+            c_fskprint("$3/user/path.txt$B not found.\n");
+            return 1;
+        }
+        uint32_t *fileuint32 = c_fs_declare_read_array(path_to_path);
+        c_fs_read_file(path_to_path, fileuint32);
+        // we convert the file to char
+        char *file = c_malloc(c_fs_get_file_size(path_to_path) * 128);
+        int file_size = 0;
+        int char_count;
+        for (char_count = 0; fileuint32[char_count] != (uint32_t) -1; char_count++) {
+            file_size++;
+            file[char_count] = (char) fileuint32[char_count];
+        }
+        file[char_count] = '\n';
+        file[char_count+1] = '\0';
+
+        // we malloc and split the file
+        int lines = c_str_count(file, '\n');
+        c_fskprint("Il y a %d lignes\n", lines);
+        char **list_paths = c_calloc(lines);
+        for (int i = 0; i < lines; i++) {
+            list_paths[i] = c_calloc(256);
+        }
+        
+        // we split the file
+        int i = 0;
+        int j = 0;
+        int k = 0;
+        while (i != lines) {
+            list_paths[i][j] = file[k];
+            if (file[k] == '\n') {
+                list_paths[i][j] = '\0';
+                i++;
+                j = 0;
+            } else {
+                j++;
+            }
+            k++;
+        }
+
+        // we look for the command
+        for (int i = 0; i < lines; i++) {
+            c_fskprint("we compare %s to %s\n", list_paths[i], prefix);
+        }
+
+        // at the end we free the memory
+        for (int i = 0; i < lines; i++) {
+            c_free(list_paths[i]);
+        }
+        c_free(fileuint32);
+        c_free(list_paths);
+        c_free(file);
     }
 
     c_free(prefix);

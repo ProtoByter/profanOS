@@ -14,8 +14,7 @@ int main(int argc, char **argv) {
     while (1) {
 
         Settings_t settings;
-        settings.flags = !FLAG_NO_INTERPRETOR | !FLAG_NO_TYPECHECK | FLAG_PRINT_PARSER_OUTPUT | FLAG_PRINT_STACK | !FLAG_PRINT_MEMORY
-        ;	
+        settings.flags = !FLAG_NO_INTERPRETOR | !FLAG_NO_TYPECHECK | FLAG_PRINT_PARSER_OUTPUT | FLAG_PRINT_STACK | !FLAG_PRINT_MEMORY;
 
         char *code = (char *) c_malloc(sizeof(char) * 1001);
         c_fskprint("Keashell >>> ");
